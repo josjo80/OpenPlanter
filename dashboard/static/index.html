@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenPlanter Dashboard</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1><span class="icon">&#127793;</span> OpenPlanter</h1>
+            <div class="subtitle">Investigation Agent Dashboard</div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-label">General</div>
+                <a class="nav-item active" data-page="overview">
+                    <span class="nav-icon">&#9678;</span> Overview
+                </a>
+                <a class="nav-item" data-page="investigate">
+                    <span class="nav-icon">&#9881;</span> Investigate
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">Data</div>
+                <a class="nav-item" data-page="sessions">
+                    <span class="nav-icon">&#9776;</span> Sessions
+                    <span class="badge" id="session-count">-</span>
+                </a>
+                <a class="nav-item" data-page="scripts">
+                    <span class="nav-icon">&#9655;</span> Data Sources
+                </a>
+                <a class="nav-item" data-page="files">
+                    <span class="nav-icon">&#128193;</span> Files
+                </a>
+                <a class="nav-item" data-page="wiki">
+                    <span class="nav-icon">&#128214;</span> Wiki
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-label">System</div>
+                <a class="nav-item" data-page="config">
+                    <span class="nav-icon">&#9881;</span> Configuration
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+
+        <!-- ============================================================ -->
+        <!-- OVERVIEW PAGE -->
+        <!-- ============================================================ -->
+        <div class="page active" id="page-overview">
+            <div class="page-header">
+                <h2>Overview</h2>
+                <p class="page-desc">OpenPlanter investigation agent status and quick actions</p>
+            </div>
+
+            <div class="grid grid-4 mb-2" id="overview-stats">
+                <div class="stat-card accent">
+                    <div class="stat-label">Sessions</div>
+                    <div class="stat-value" id="ov-sessions">-</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-label">Data Fetchers</div>
+                    <div class="stat-value" id="ov-fetchers">-</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="stat-label">Analysis Scripts</div>
+                    <div class="stat-value" id="ov-analysis">-</div>
+                </div>
+                <div class="stat-card yellow">
+                    <div class="stat-label">Providers</div>
+                    <div class="stat-value" id="ov-providers">-</div>
+                    <div class="stat-detail" id="ov-provider-list"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Recent Sessions</h3>
+                        <a class="btn btn-sm btn-primary" onclick="navigateTo('sessions')">View All</a>
+                    </div>
+                    <div class="card-body no-pad" id="ov-recent-sessions">
+                        <div class="empty-state">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Quick Actions</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <button class="btn btn-green" onclick="navigateTo('investigate')">
+                                &#9655; New Investigation
+                            </button>
+                            <button class="btn btn-primary" onclick="navigateTo('scripts')">
+                                &#128202; Run Data Fetcher
+                            </button>
+                            <button class="btn" onclick="navigateTo('files')">
+                                &#128193; Browse Workspace
+                            </button>
+                            <button class="btn" onclick="navigateTo('config')">
+                                &#9881; Configure Agent
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- INVESTIGATE PAGE -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-investigate">
+            <div class="page-header">
+                <h2>Launch Investigation</h2>
+                <p class="page-desc">Run the OpenPlanter agent with a custom objective</p>
+            </div>
+
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header"><h3>Investigation Parameters</h3></div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Objective</label>
+                            <textarea class="form-textarea" id="inv-objective" rows="4"
+                                placeholder="Describe what you want the agent to investigate...&#10;&#10;Example: Fetch FEC data for Boston area candidates and cross-reference with city contracts to identify potential pay-to-play patterns."></textarea>
+                        </div>
+                        <div class="grid grid-2">
+                            <div class="form-group">
+                                <label>Provider</label>
+                                <select class="form-select" id="inv-provider">
+                                    <option value="auto">Auto-detect</option>
+                                    <option value="anthropic">Anthropic</option>
+                                    <option value="openai">OpenAI</option>
+                                    <option value="openrouter">OpenRouter</option>
+                                    <option value="cerebras">Cerebras</option>
+                                    <option value="ollama">Ollama</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Model</label>
+                                <input class="form-input" id="inv-model" placeholder="e.g. claude-opus-4-6 (leave blank for default)">
+                            </div>
+                        </div>
+                        <div class="grid grid-3">
+                            <div class="form-group">
+                                <label>Max Steps</label>
+                                <input class="form-input" id="inv-max-steps" type="number" value="100" min="1" max="1000">
+                            </div>
+                            <div class="form-group">
+                                <label>Max Depth</label>
+                                <input class="form-input" id="inv-max-depth" type="number" value="4" min="1" max="10">
+                            </div>
+                            <div class="form-group">
+                                <label>Reasoning Effort</label>
+                                <select class="form-select" id="inv-reasoning">
+                                    <option value="high">High</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn btn-green" id="inv-launch" onclick="launchInvestigation()">
+                            &#9655; Launch Investigation
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Live Output</h3>
+                        <span class="tag tag-blue" id="inv-status">Idle</span>
+                    </div>
+                    <div class="card-body no-pad">
+                        <div class="terminal" id="inv-terminal">
+                            <span class="line-status">Ready. Configure parameters and launch an investigation.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- SESSIONS PAGE -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-sessions">
+            <div class="page-header">
+                <h2>Sessions</h2>
+                <p class="page-desc">View past investigation sessions, events, and artifacts</p>
+            </div>
+
+            <div id="sessions-list-view">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>All Sessions</h3>
+                        <button class="btn btn-sm" onclick="loadSessions()">Refresh</button>
+                    </div>
+                    <div class="card-body no-pad">
+                        <div class="table-wrap" id="sessions-table">
+                            <div class="empty-state">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="session-detail-view" style="display: none;">
+                <div style="margin-bottom: 16px;">
+                    <button class="btn btn-sm" onclick="showSessionsList()">&#8592; Back to Sessions</button>
+                </div>
+                <div class="card mb-2">
+                    <div class="card-header">
+                        <h3 id="sd-title">Session</h3>
+                        <span class="font-mono text-xs text-muted" id="sd-id"></span>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid grid-3">
+                            <div>
+                                <span class="text-muted text-xs">Created</span>
+                                <div class="text-sm" id="sd-created">-</div>
+                            </div>
+                            <div>
+                                <span class="text-muted text-xs">Events</span>
+                                <div class="text-sm" id="sd-events-count">-</div>
+                            </div>
+                            <div>
+                                <span class="text-muted text-xs">Artifacts</span>
+                                <div class="text-sm" id="sd-artifact-count">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tabs" id="sd-tabs">
+                    <div class="tab active" data-tab="sd-events">Events</div>
+                    <div class="tab" data-tab="sd-turns">Turn History</div>
+                    <div class="tab" data-tab="sd-artifacts">Artifacts</div>
+                </div>
+
+                <div class="tab-content active" id="sd-events">
+                    <div class="card">
+                        <div class="card-body no-pad">
+                            <div class="event-log" id="sd-event-log"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="sd-turns">
+                    <div class="card">
+                        <div class="card-body no-pad" id="sd-turn-list"></div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="sd-artifacts">
+                    <div class="card">
+                        <div class="card-body no-pad" id="sd-artifact-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- SCRIPTS PAGE -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-scripts">
+            <div class="page-header">
+                <h2>Data Sources</h2>
+                <p class="page-desc">Run data fetcher and analysis scripts</p>
+            </div>
+
+            <div class="tabs" id="scripts-tabs">
+                <div class="tab active" data-tab="tab-fetchers">Data Fetchers</div>
+                <div class="tab" data-tab="tab-analysis">Analysis Scripts</div>
+            </div>
+
+            <div class="tab-content active" id="tab-fetchers">
+                <div class="card">
+                    <div class="card-body no-pad" id="fetchers-list">
+                        <div class="empty-state"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-analysis">
+                <div class="card">
+                    <div class="card-body no-pad" id="analysis-list">
+                        <div class="empty-state"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-2" id="script-output-card" style="display: none;">
+                <div class="card-header">
+                    <h3>Script Output</h3>
+                    <span class="tag" id="script-run-status">-</span>
+                </div>
+                <div class="card-body no-pad">
+                    <div class="terminal" id="script-terminal"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- FILES PAGE -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-files">
+            <div class="page-header">
+                <h2>File Browser</h2>
+                <p class="page-desc">Browse workspace files and view contents</p>
+            </div>
+
+            <div class="card">
+                <div class="breadcrumb" id="file-breadcrumb"></div>
+                <div class="card-body no-pad" id="file-listing">
+                    <div class="empty-state"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div class="card mt-2" id="file-content-card" style="display: none;">
+                <div class="card-header">
+                    <h3 id="file-content-title">-</h3>
+                    <span class="text-muted text-xs font-mono" id="file-content-size"></span>
+                </div>
+                <div class="card-body no-pad">
+                    <pre id="file-content-pre"></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- WIKI PAGE -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-wiki">
+            <div class="page-header">
+                <h2>Wiki</h2>
+                <p class="page-desc">Project documentation and knowledge base</p>
+            </div>
+
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header"><h3>Pages</h3></div>
+                    <div class="card-body no-pad" id="wiki-list">
+                        <div class="empty-state"><div class="spinner"></div></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 id="wiki-page-title">Select a page</h3>
+                    </div>
+                    <div class="card-body" id="wiki-content">
+                        <div class="empty-state">
+                            <p class="text-muted">Select a wiki page to view its contents.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- CONFIG PAGE -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-config">
+            <div class="page-header">
+                <h2>Configuration</h2>
+                <p class="page-desc">Agent settings, API keys, and runtime parameters</p>
+            </div>
+
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header"><h3>API Credentials</h3></div>
+                    <div class="card-body" id="config-credentials">
+                        <div class="empty-state"><div class="spinner"></div></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>Agent Configuration</h3></div>
+                    <div class="card-body" id="config-agent">
+                        <div class="empty-state"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-2">
+                <div class="card-header">
+                    <h3>Default Model Settings</h3>
+                    <button class="btn btn-sm btn-primary" onclick="saveSettings()">Save Settings</button>
+                </div>
+                <div class="card-body" id="config-settings">
+                    <div class="empty-state"><div class="spinner"></div></div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
