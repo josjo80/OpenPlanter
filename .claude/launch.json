@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "dashboard",
-      "runtimeExecutable": "python3",
+      "runtimeExecutable": "/Users/joshuajohnson/anaconda/envs/openplanter/bin/python3",
       "runtimeArgs": ["-m", "dashboard"],
       "port": 8420
     }

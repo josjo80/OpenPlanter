@@ -37,6 +37,27 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 WORKSPACE = PROJECT_ROOT
 SESSION_ROOT_DIR = ".openplanter"
 
+# The agent package requires Python 3.10+.  Discover a suitable interpreter
+# so that agent subprocesses (headless runs, script executions) use it even
+# when the dashboard itself is launched from an older system Python.
+def _find_agent_python() -> str:
+    """Return the path to a Python 3.10+ interpreter for running the agent."""
+    # 1. Explicit env var override
+    explicit = os.getenv("OPENPLANTER_PYTHON")
+    if explicit and Path(explicit).is_file():
+        return explicit
+    # 2. Conda env created for this project
+    conda_py = Path.home() / "anaconda" / "envs" / "openplanter" / "bin" / "python3"
+    if conda_py.is_file():
+        return str(conda_py)
+    # 3. Current interpreter if 3.10+
+    if sys.version_info >= (3, 10):
+        return sys.executable
+    # 4. Fallback to system python3 (may or may not work)
+    return "python3"
+
+AGENT_PYTHON = _find_agent_python()
+
 PROVIDER_DEFAULT_MODELS = {
     "openai": "gpt-5.2",
     "anthropic": "claude-opus-4-6",
@@ -496,7 +517,7 @@ async def api_run_script(request: Request):
     def _run():
         try:
             result = subprocess.run(
-                [sys.executable, str(script_path)] + args,
+                [AGENT_PYTHON, str(script_path)] + args,
                 capture_output=True,
                 text=True,
                 timeout=300,
@@ -627,7 +648,7 @@ async def ws_agent(websocket: WebSocket):
         await websocket.send_json({"type": "status", "message": "Initializing agent..."})
 
         cmd = [
-            sys.executable, "-m", "agent",
+            AGENT_PYTHON, "-m", "agent",
             "--workspace", str(WORKSPACE),
             "--headless",
             "--task", objective,
